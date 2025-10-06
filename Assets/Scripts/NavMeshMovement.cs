@@ -34,7 +34,7 @@ public class NavMeshMovement : MonoBehaviour
         return _agent != null ? _agent.speed : 2f;
     }
 
-    public bool HasReachedDestination(float threshold = 0.06f)
+    public bool HasReachedDestination(float threshold = 0.01f)
     {
         if (_agent == null) return false;
         if (_agent.pathPending) return false;

@@ -49,7 +49,7 @@ public class WomanOneFSM : CharacterFSM
         if (_mover != null && _distraction != null)
         {
             _mover.MoveTo(_distraction);
-            if (Vector3.Distance(transform.position, _distraction.position) < 1.5f)
+            if (Vector3.Distance(transform.position, _distraction.position) < 1.0f)
             {
                 isDistracted = true;
                 SetState(STATE.INTERACT);
@@ -70,7 +70,7 @@ public class WomanOneFSM : CharacterFSM
         if (_mover != null && _home != null)
         {
             _mover.MoveTo(_home);
-            if (Vector3.Distance(transform.position, _home.position) < 1.5f)
+            if (Vector3.Distance(transform.position, _home.position) < 0.5f)
             {
                 if (_kitchen.IsON == false)
                 {
