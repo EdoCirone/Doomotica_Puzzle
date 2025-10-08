@@ -1,31 +1,39 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GenericForniture : MonoBehaviour
 {
     [SerializeField] private bool _isON;
-    [SerializeField] private GameObject _effectsGameObject;
+    [SerializeField] private EventChannelForniture _channel;
 
+    [SerializeField] private UnityEvent _onActivate;
+    [SerializeField] private UnityEvent _onDeactivate;
 
-    public bool IsON { get => _isON; private set => _isON = value; }
-    public Collider EffectCollider { get; private set ; }
+    public event System.Action<GenericForniture> OnDeactivate;
+    public event System.Action<GenericForniture> OnActivate;
 
-    private void Start()
-    {
-        if( _effectsGameObject == null)
-        {
-            Debug.LogWarning("Assegna un effetto a " + gameObject.name);
-            return;
-        }
-        EffectCollider = _effectsGameObject.GetComponentInChildren<Collider>();
-    }
+    public bool IsON => _isON;
+    public Collider EffectCollider { get; private set; }
 
     public void SetIsON(bool value)
     {
+        //if (_isON == value) return;
+
         _isON = value;
-        if (_effectsGameObject != null)
-            _effectsGameObject.SetActive(value);
+        if (value)
+        {
+            _onActivate?.Invoke(); //Logica per effetti sonori o visivi
+            OnActivate?.Invoke(this); //Logica per gestione FSM
+            _channel?.Raise(this);
+        }
+        else
+        {
+            _onDeactivate?.Invoke();
+            OnDeactivate?.Invoke(this);
+        }
+
     }
     protected virtual void OnMouseDown()
     {
