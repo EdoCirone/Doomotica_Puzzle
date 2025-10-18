@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class GenericForniture : MonoBehaviour
 {
     [SerializeField] private bool _isON;
-    [SerializeField] private EventChannelForniture _channel;
+    [SerializeField] private EventChannelForniture _activationChannel;
 
     [SerializeField] private UnityEvent _onActivate;
     [SerializeField] private UnityEvent _onDeactivate;
@@ -26,12 +26,13 @@ public class GenericForniture : MonoBehaviour
         {
             _onActivate?.Invoke(); //Logica per effetti sonori o visivi
             OnActivate?.Invoke(this); //Logica per gestione FSM
-            _channel?.Raise(this);
+            _activationChannel?.Raise(this);
         }
         else
         {
             _onDeactivate?.Invoke();
             OnDeactivate?.Invoke(this);
+            _activationChannel?.Raise(this);
         }
 
     }

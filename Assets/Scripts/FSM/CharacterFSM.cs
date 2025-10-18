@@ -1,84 +1,173 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
 
-public abstract class CharacterFSM : MonoBehaviour
+/// <summary>
+/// FSM vera e propria data-driven. Stati e Transizioni sono definiti in asset esterni (ScriptableObject) e configurati nell'Inspector.
+/// </summary>
+
+public class CharacterFSM : MonoBehaviour
 {
-    [SerializeField] protected STATE _currentState;
+    [Header("FSM Transitions conf")]
 
-    public bool isDeath { get; protected set; } = false;
+    [SerializeField]
+    [Tooltip("Initial State of the FSM.")]
+    private CharacterStateSO initialState; // Stato iniziale della FSM
 
-    protected Animator _animator;
-    protected NavMeshMovement _mover;
+    [SerializeField]
+    [Tooltip("Possible Transitions")]
+    private List<StateTransition> transitions; // Lista di transizioni possibili
 
-    protected virtual void Start()
+    [SerializeField] private CharacterStateSO currentState; // Stato attuale della FSM serializzato per il debug nell'Inspector
+
+    [Header("Event Listener")]
+    [SerializeField]
+    [Tooltip("Event Listener for interaction with ambient.")]
+    List<EventChannelForniture> _channelsToListen;
+    private Dictionary<EventChannelForniture, TransitionConditionSO> _eventTransitions;
+
+
+    //Componenti accessibili dagli stati e dalle condizioni
+    public Animator Animator { get; private set; }
+    public NavMeshMovement Mover { get; private set; }
+    public CharacterStateSO CurrentState => currentState;
+
+    //Flag di Stato
+
+    public bool IsDeath { get; private set; } = false;
+
+    public bool IsDistracted { get; set; } = false;
+
+    private bool isInteractionComplete = false;
+    public bool IsInteractionComplete => isInteractionComplete;
+
+    private bool _isTransitioning = false;
+
+
+
+    // START E UPDATE (EVENTUALI CICLI DI UNITY TIPO AWAKE)
+
+    private void OnEnable()
     {
-        _animator = GetComponentInChildren<Animator>();
-        _mover = GetComponent<NavMeshMovement>();
-        _currentState = STATE.IDLE;
-    }
+        _eventTransitions = new Dictionary<EventChannelForniture, TransitionConditionSO>();
 
-    protected virtual void Update()
-    {
-        StateMachine(_currentState);
-    }
-
-    protected void StateMachine(STATE newState)
-    {
-        switch (newState)
+        foreach(var channel in _channelsToListen)
         {
-            case STATE.IDLE:
-                IdleState();
-                break;
-            case STATE.WALK:
-                WalkState();
-                break;
-            case STATE.INTERACT:
-                InteractState();
-                break;
-            case STATE.COMEBACK:
-                ComeBackState();
-                break;
-            case STATE.DEATH:
-                DeathState();
-                break;
-            default:
-                Debug.LogWarning("Stato non gestito: " + newState);
-                break;
+            channel.OnEventRaised += OnFornitureEvent;
         }
     }
 
-    protected abstract void IdleState();
-    protected abstract void WalkState();
-    protected abstract void InteractState();
-    protected abstract void ComeBackState();
-    protected virtual void DeathState()
+    private void Start()
     {
-        if (isDeath) return;
-        isDeath = true;
-        if (_animator != null)
-        {
-            _animator.Play("Death");
-        }
-        if (_mover != null)
-        {
-            _mover.SetSpeed(0);
-        }
+        Animator = GetComponentInChildren<Animator>();
+        Mover = GetComponent<NavMeshMovement>();
 
-        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+        if (initialState != null)
         {
-            r.material.color = Color.red;
+            ChangeState(initialState);
         }
-
-        LVLManager.Instance.CheckCharacterAlive();
+        else
+        {
+            Debug.LogError("Initial State is not assigned in CharacterFSM.");
+        }
     }
 
-    protected void SetState(STATE newState)
+    private void Update()
     {
-        if (isDeath && newState != STATE.DEATH) return;
-        _currentState = newState;
+        currentState?.OnUpdate(this);
+
+        CheckTransitions();
     }
 
+    // GESTIONE DEGLI STATI
+
+
+    private void CheckTransitions()
+    {
+        if (_isTransitioning) return;
+
+        foreach (var transition in transitions)
+        {
+            if (transition.fromState != currentState) continue; // Salta le transizioni che non partono dallo stato attuale
+            if (transition.CanTransition(this))
+            {
+                _isTransitioning = true;
+                ChangeState(transition.toState);
+                _isTransitioning = false; 
+                break;
+            }
+        }
+    }
+
+    private void ChangeState(CharacterStateSO newState)
+    {
+        if (newState == null) return; // Se lo stato è lo stesso, non fare nulla
+
+        if (IsDeath && !(newState is DeathStateSO))
+        {
+            Debug.LogWarning("Character is dead and cannot change to a non-death state.");
+            return; // Non permettere il cambio di stato se il personaggio è morto e il nuovo stato non è DEATH
+        }
+
+        Debug.Log($"{gameObject.name} Transitioning from {currentState?.name ?? "None"} to {newState.name}");
+
+        currentState?.OnExit(this); // Chiamata al metodo OnExit dello stato attuale, se esiste
+
+        currentState = newState; // Aggiorna lo stato attuale
+
+        currentState?.OnEnter(this); // Chiamata al metodo OnEnter del nuovo stato, se esiste
+    }
+
+    // informazioni di stato pubbliche
+
+    public void Die()
+    {
+        if (IsDeath) return;
+        IsDeath = true;
+
+        foreach (var transition in transitions)
+        {
+            if (transition.toState is DeathStateSO)
+            {
+                ChangeState(transition.toState);
+                return; // Esce dopo aver cambiato stato
+            }
+        }
+
+        Debug.LogWarning($"{gameObject.name}No transition to DeathStateSO found in transitions list.");
+    }
+
+    public void OnFornitureEvent(GenericForniture forniture)
+    {
+        Debug.Log($"{gameObject.name} received Forniture event: {forniture.name}");
+
+        foreach (var transition in transitions)
+        {
+            if (transition.condition is FurnitureActiveConditionSO fornitureCondition)
+            {
+                if(fornitureCondition.targetForniture == forniture)
+                {
+                    Debug.Log($"{gameObject.name} Found matching transition for forniture event: {forniture.name}");
+                    if (transition.CanTransition(this))
+                    {
+                        Debug.Log($"{gameObject.name} Transitioning due to forniture event: {forniture.name}");
+                        ChangeState(transition.toState);
+                        return; // Esce dopo aver cambiato stato
+                    }
+                }
+            }
+        }
+
+    }
+
+    public void SetInterectionComplete(bool value)
+    {
+        isInteractionComplete = value;
+    }
+
+    public void ResetInteractionComplete()
+    {
+        isInteractionComplete = false;
+    }
 }
-
 

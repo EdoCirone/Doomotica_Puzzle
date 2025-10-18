@@ -47,7 +47,7 @@ public class LVLManager : MonoBehaviour
     {
         foreach (CharacterFSM character in _characters)
         {
-            if (!character.isDeath) return;
+            if (!character.IsDeath) return;
         }
         OnWin();
     }
