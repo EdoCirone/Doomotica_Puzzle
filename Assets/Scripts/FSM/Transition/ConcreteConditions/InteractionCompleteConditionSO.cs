@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "InteractionCompleteCondition", menuName = "FSM/Conditions/InteractionComplete")]
+[CreateAssetMenu(fileName = "InteractionCompleteCondition", menuName = "ScriptableObjects/FSM/Conditions/InteractionComplete")]
 public class InteractionCompleteConditionSO : TransitionConditionSO
 {
 

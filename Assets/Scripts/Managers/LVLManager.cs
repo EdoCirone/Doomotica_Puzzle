@@ -32,6 +32,11 @@ public class LVLManager : MonoBehaviour
         if (losePanel != null)
             losePanel.SetActive(false);
         _characters = FindObjectsOfType<CharacterFSM>();
+        Debug.Log($"Characters found: {_characters.Length}");
+        foreach (CharacterFSM character in _characters)
+        {
+            Debug.Log($"Character: {character.name}");
+        }
     }
 
     public void Update()

@@ -1,6 +1,9 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.VersionControl.Asset;
+
+[CreateAssetMenu(fileName = "InteractState", menuName = "ScriptableObjects/FSM/States/InteractStateSO", order = 2)]
 
 public class InteractStateSO : CharacterStateSO
 {

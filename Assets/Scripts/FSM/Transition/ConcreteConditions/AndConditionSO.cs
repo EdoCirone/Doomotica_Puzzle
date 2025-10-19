@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "FornitureActiveCondition", menuName = "FSM/Conditions/Furniture Active")]
+[CreateAssetMenu(fileName = "FornitureAndCondition", menuName = "ScriptableObjects/FSM/Conditions/FurnitureAnd")]
 public class AndConditionSO : TransitionConditionSO
 {
     public TransitionConditionSO[] conditions; // le condizioni che devono essere tutte vere in contemporanea

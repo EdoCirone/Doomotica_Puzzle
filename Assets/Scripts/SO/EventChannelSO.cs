@@ -16,7 +16,7 @@ public abstract class EventChannelSO<T> : ScriptableObject
         OnEventRaised?.Invoke(value);
     }
 
-    public virtual void OnDisable() 
+    public virtual void OnDisable()
     {
         OnEventRaised = null;
     }
@@ -40,10 +40,13 @@ public class EventChannelForniture : EventChannelSO<GenericForniture> { }
 [CreateAssetMenu(fileName = "New Carriable Channel", menuName = "ScriptableObjects/EventChannels/Carriable")]
 public class EventChannelCarriable : EventChannelSO<CarriableData> { }
 
+[CreateAssetMenu(fileName = "New CharacterFSM", menuName = "ScriptableObjects/EventChannels/Character")]
 
+public class EventChannelCharacter : EventChannelSO<CharacterFSM> { }
 
-//Mi faccio anche un Void Channel per eventi che non hanno bisogno di passare parametri
-[System.Serializable] public struct Void { }
+public struct VoidStruct { public static readonly VoidStruct Instance = new VoidStruct(); }
 
 [CreateAssetMenu(fileName = "New Void Channel", menuName = "ScriptableObjects/EventChannels/Void")]
-public class EventChannelVoid : EventChannelSO<Void> { }
+public class EventChannelVoid : EventChannelSO<VoidStruct> { }
+
+

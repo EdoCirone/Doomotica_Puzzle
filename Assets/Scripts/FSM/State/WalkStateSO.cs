@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "WalkState", menuName = "FSM/States/WalkState")]
+[CreateAssetMenu(fileName = "WalkState", menuName = "ScriptableObjects/FSM/States/WalkState")]
 public class WalkStateSO : CharacterStateSO
 {
 

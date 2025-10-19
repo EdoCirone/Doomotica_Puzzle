@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ReachedDestinationCondition", menuName = "FSM/Conditions/ReachedDestination")]
+[CreateAssetMenu(fileName = "ReachedDestinationCondition", menuName = "ScriptableObjects/FSM/Conditions/ReachedDestination")]
 public class ReachedDestinationConditionSO : TransitionConditionSO
 {
     public Transform destination;
