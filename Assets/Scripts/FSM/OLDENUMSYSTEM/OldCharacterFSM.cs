@@ -11,6 +11,9 @@ public abstract class OldCharacterFSM : MonoBehaviour
     protected Animator _animator;
     protected NavMeshMovement _mover;
 
+    public event System.Action<OldCharacterFSM> OnCharacterDeath;
+
+
     protected virtual void Start()
     {
         _animator = GetComponentInChildren<Animator>();
@@ -56,21 +59,14 @@ public abstract class OldCharacterFSM : MonoBehaviour
     {
         if (isDeath) return;
         isDeath = true;
-        if (_animator != null)
-        {
-            _animator.Play("Death");
-        }
-        if (_mover != null)
-        {
-            _mover.SetSpeed(0);
-        }
+
+        _animator?.Play("Death");
+        _mover?.SetSpeed(0);
 
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
-        {
             r.material.color = Color.red;
-        }
 
-        LVLManager.Instance.CheckCharacterAlive();
+        OnCharacterDeath?.Invoke(this); // avvisa il LVLManager
     }
 
     protected void SetState(STATE newState)

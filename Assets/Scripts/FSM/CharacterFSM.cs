@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
@@ -42,6 +43,9 @@ public class CharacterFSM : MonoBehaviour
     public bool IsInteractionComplete => isInteractionComplete;
 
     private bool _isTransitioning = false;
+
+    //EVENTI
+    public event Action<OldCharacterFSM> OnCharacterDeath;
 
 
 

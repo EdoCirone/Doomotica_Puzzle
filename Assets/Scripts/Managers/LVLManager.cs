@@ -1,17 +1,23 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LVLManager : MonoBehaviour
 {
-
-    [SerializeField] private GameObject winPanel;
-    [SerializeField] private GameObject losePanel;
-    [SerializeField] private GameObject pausePanel;
-
-    private CharacterFSM[] _characters;
-    private float _puzzleTimer;
     public static LVLManager Instance { get; private set; }
+
+    private List<OldCharacterFSM> _characters = new List<OldCharacterFSM>();
+    private int _deadCount;
+    private bool _isLevelEnded;
+    private bool _isPaused;
+
+    //EVENTI 
+    public event Action onWinEvent;
+    public event Action onLostEvent;
+    public event Action onResumeEvent;
+    public event Action onPauseEvent;
 
     private void Awake()
     {
@@ -25,79 +31,94 @@ public class LVLManager : MonoBehaviour
         }
     }
 
-    public void Start()
+    private void Start()
     {
-        if (winPanel != null)
-            winPanel.SetActive(false);
-        if (losePanel != null)
-            losePanel.SetActive(false);
-        _characters = FindObjectsOfType<CharacterFSM>();
-        Debug.Log($"Characters found: {_characters.Length}");
-        foreach (CharacterFSM character in _characters)
+        _characters.AddRange(FindObjectsOfType<OldCharacterFSM>());
+
+        foreach (OldCharacterFSM character in _characters)
         {
-            Debug.Log($"Character: {character.name}");
+            character.OnCharacterDeath += OnCharacterDeath;
         }
     }
 
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (!_isLevelEnded && Input.GetKeyDown(KeyCode.Escape))
         {
-            PauseGame();
+            TogglePause();
         }
     }
 
 
-    public void CheckCharacterAlive()
+    private void OnCharacterDeath(OldCharacterFSM character)
     {
-        foreach (CharacterFSM character in _characters)
-        {
-            if (!character.IsDeath) return;
-        }
-        OnWin();
-    }
-    
-    public void RestartLevel()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        if (_isLevelEnded) return;
+
+        _deadCount++;
+        CheckWinCondition();
     }
 
-    public void PauseGame()
+    private void CheckWinCondition()
     {
-        if (pausePanel != null)
+        if (_deadCount >= _characters.Count)
         {
-            pausePanel.SetActive(!pausePanel.activeSelf);
-            Time.timeScale = pausePanel.activeSelf ? 0f : 1f;
+            OnWin();
         }
     }
 
-    public void OnWin()
+    public void RegisterLose()
     {
+        if (_isLevelEnded) return;
+        OnLose();
+    }
 
-        winPanel?.SetActive(true);
+    private void OnWin()
+    {
+        if (_isLevelEnded) return;
+        _isLevelEnded = true;
+
         Time.timeScale = 0f;
+        Debug.Log("Hai vinto!");
+        onWinEvent?.Invoke();
+    }
+    private void OnLose()
+    {
+        if (_isLevelEnded) return;
+        _isLevelEnded = true;
 
-        Debug.Log("Hai Vinto");
+        Time.timeScale = 0f;
+        Debug.Log("Hai perso!");
+        onLostEvent?.Invoke();
     }
 
-    public void OnLose()
+    public void TogglePause()
     {
+        if (_isLevelEnded) return;
 
-        losePanel?.SetActive(true);
-        Time.timeScale = 0f;
+        _isPaused = !_isPaused;
+        Time.timeScale = _isPaused ? 0f : 1f;
 
-        Debug.Log("Hai Perso");
+        if (_isPaused) onPauseEvent?.Invoke();
+        else onResumeEvent?.Invoke();
+    }
+
+    public void ResetLevel()
+    {
+        Time.timeScale = 1f;
+        Scene scene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(scene.name);
     }
 
     private void OnDestroy()
     {
-
+        foreach (OldCharacterFSM character in _characters)
+        {
+            character.OnCharacterDeath -= OnCharacterDeath;
+        }
         if (Instance == this)
         {
-
             Instance = null;
-
         }
-
     }
+
 }

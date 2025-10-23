@@ -5,12 +5,26 @@ using Cinemachine;
 
 public class CameraManager : MonoBehaviour
 {
+    [Header ("Camera References")]
     [SerializeField] private CinemachineVirtualCamera _mainCamera;
     [SerializeField] private Transform _cameraPivot;
 
+    [Header("Camera Sensitivity")]
     [SerializeField] private float _cameraSensitivity = 10f;
+    [SerializeField] private float _mouseSpeed = 3f;
+
+
     [SerializeField] private float _cameraRotationSensitivity = 10f;
     [SerializeField] private float _cameraZoomSensitivity = 10f;
+    [SerializeField] private float _cameraPitchSensitivity = 10f;
+
+    [Header("Camera Bounds")]
+    [SerializeField] private Vector2 _xLimits = new Vector2(-10f, 10f);
+    [SerializeField] private Vector2 _zLimits = new Vector2(-10f, 10f);
+
+    [Header("Pitch Limits")]
+    [SerializeField] private float _minPitch = 10f;   // più “orizzontale”
+    [SerializeField] private float _maxPitch = 80f;   // più “in giù”
 
     Vector3 _moveVector = Vector3.zero;
     Vector3 _rotationVector = Vector3.zero;
@@ -28,6 +42,13 @@ public class CameraManager : MonoBehaviour
         _moveVector.x = Input.GetAxis("Horizontal");
         _moveVector.z = Input.GetAxis("Vertical");
 
+        //Blocco del cursore al click centrale
+        if (Input.GetMouseButtonDown(2))
+            Cursor.lockState = CursorLockMode.Locked;
+        if (Input.GetMouseButtonUp(2))
+            Cursor.lockState = CursorLockMode.None;
+
+
         CameraMovement();
         CameraRotation();
         CameraZoom();
@@ -39,7 +60,31 @@ public class CameraManager : MonoBehaviour
     {
         _moveVector = _cameraPivot.transform.right * _moveVector.x + _cameraPivot.transform.forward * _moveVector.z;
 
+        //Gestione del movimento col click destro
+        if (Input.GetMouseButton(1))
+        {
+            float mouseX = Input.GetAxis("Mouse X");
+            float mouseY = Input.GetAxis("Mouse Y");
+
+            Vector3 right = _cameraPivot.transform.right;
+            Vector3 forward = _cameraPivot.transform.forward;
+            forward.y = 0f;
+            forward.Normalize();
+
+        
+            Vector3 moveByMouse = (right * mouseX + forward * mouseY) * -_mouseSpeed * _cameraSensitivity * Time.deltaTime;
+
+            _cameraPivot.transform.position += moveByMouse;
+        }
+
+        //Gestione del movimento con WASD/Arrow Keys
         _cameraPivot.transform.position += _moveVector * _cameraSensitivity * Time.deltaTime;
+
+        // Limiti del perimetro
+        Vector3 clampedPos = _cameraPivot.transform.position;
+        clampedPos.x = Mathf.Clamp(clampedPos.x, _xLimits.x, _xLimits.y);
+        clampedPos.z = Mathf.Clamp(clampedPos.z, _zLimits.x, _zLimits.y);
+        _cameraPivot.transform.position = clampedPos;
 
     }
 
@@ -49,30 +94,45 @@ public class CameraManager : MonoBehaviour
 
         if (Input.GetMouseButton(2))
         {
+            float mouseX = Input.GetAxis("Mouse X");
+            float mouseY = Input.GetAxis("Mouse Y");
 
-            _cameraPivot.Rotate(Vector3.up * Input.GetAxis("Mouse X") * 5f, Space.World);
+            // YAW (sinistra-destra)
+            _cameraPivot.Rotate(Vector3.up * mouseX * _cameraRotationSensitivity * Time.deltaTime, Space.World);
 
+            // PITCH (su-giù) – ruota attorno all’asse X locale
+            Vector3 euler = _cameraPivot.localEulerAngles;
+            float pitch = euler.x;
 
+            if (pitch > 180f) pitch -= 360f;
+            pitch -= mouseY * _cameraPitchSensitivity * Time.deltaTime;
+            pitch = Mathf.Clamp(pitch, _minPitch, _maxPitch);
+
+            euler.x = pitch;
+            _cameraPivot.localEulerAngles = euler;
         }
 
+        // Rotazione con Q/E
         if (Input.GetKey(KeyCode.Q))
-        {
-
             _rotationVector.y = _cameraRotationSensitivity * Time.deltaTime;
-
-        }
-
         if (Input.GetKey(KeyCode.E))
-        {
-            _rotationVector.y = -(_cameraRotationSensitivity * Time.deltaTime);
+            _rotationVector.y = -_cameraRotationSensitivity * Time.deltaTime;
 
-        }
         _cameraPivot.transform.eulerAngles += _rotationVector;
     }
+
+
 
     public void CameraZoom()
     {
         float zoomChange = Input.GetAxis("Mouse ScrollWheel");
+
+        // Zoom da tastiera
+        if (Input.GetKey(KeyCode.Z))
+            zoomChange = 0.05f; 
+        if (Input.GetKey(KeyCode.X))
+            zoomChange = -0.05f; 
+
         if (zoomChange != 0f)
         {
             _mainCamera.m_Lens.FieldOfView -= zoomChange * _cameraZoomSensitivity;

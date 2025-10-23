@@ -81,7 +81,7 @@ public class FSMManOne : OldCharacterFSM
 
         if (_woman.isDeath)
         {
-            LVLManager.Instance.OnLose();
+            LVLManager.Instance.RegisterLose();
         }
 
         _isInteracting = true;
