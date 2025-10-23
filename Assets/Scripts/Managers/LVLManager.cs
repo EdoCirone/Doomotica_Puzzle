@@ -46,6 +46,7 @@ public class LVLManager : MonoBehaviour
         if (!_isLevelEnded && Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
+            Debug.Log ("Sono In Pausa");
         }
     }
 

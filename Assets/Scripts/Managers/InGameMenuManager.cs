@@ -1,14 +1,15 @@
-﻿using DG.Tweening;
+﻿ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 
-internal class InGameMenuManager
+public class InGameMenuManager : MonoBehaviour
 {
     [Header("Panels")]
     [SerializeField] private GameObject _winPanel;
     [SerializeField] private GameObject _losePanel;
     [SerializeField] private GameObject _pausePanel;
+    [SerializeField] private GameObject _optionsPanel;
 
     [Header("Animation Settings")]
     [SerializeField] private float _appearDuration = 0.5f;
@@ -74,6 +75,20 @@ internal class InGameMenuManager
           .OnComplete(() => panel.SetActive(false));
     }
 
+    public void OnOptionsButton()
+    {
+        _optionsPanel.SetActive(true);
+        var rt = _optionsPanel.GetComponent<RectTransform>();
+        rt.localScale = Vector3.zero;
+        rt.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).SetUpdate(true);
+    }
+
+    public void OnCloseOptions()
+    {
+        var rt = _optionsPanel.GetComponent<RectTransform>();
+        rt.DOScale(Vector3.zero, 0.4f).SetEase(Ease.InBack).SetUpdate(true)
+            .OnComplete(() => _optionsPanel.SetActive(false));
+    }
     // === Metodi collegati agli eventi ===
     private void ShowWinPanel() => AnimatePanelIn(_winPanel);
     private void ShowLosePanel() => AnimatePanelIn(_losePanel);

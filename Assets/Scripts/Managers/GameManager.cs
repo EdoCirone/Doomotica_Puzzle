@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
     public void LoadLevel(int index)
     {
         CurrentLevelIndex = index;
-        SceneManager.LoadScene($"Level_{index:D2}");
+        SceneManager.LoadScene($"LVL_{index:D2}");
 
     }
 
@@ -80,6 +80,16 @@ public class GameManager : MonoBehaviour
     {
 
         SceneManager.LoadScene("MainMenu");
+    }
+
+    public void LoadLevelSelection()
+    {
+        SceneManager.LoadScene("LVLSelectMenu");
+    }
+
+    public void LoadCreditsScene()
+    {
+        SceneManager.LoadScene("CreditsScene");
     }
 
     public void OnApplicationQuit()
