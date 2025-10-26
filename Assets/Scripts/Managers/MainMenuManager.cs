@@ -32,23 +32,7 @@ public class MainMenuManager : MonoBehaviour
     public void OnNewGameButton() => GameManager.Instance.NewGame();
     public void OnSelectLevelButton() => GameManager.Instance.LoadLevelSelection();
     public void OnCreditsButton() => GameManager.Instance.LoadCreditsScene();
-    public void OnQuitButton() => Application.Quit();
-
-    //===Options Pannel ===
-    public void OnOptionsButton()
-    {
-        _optionsPanel.SetActive(true);
-        _optionsPanel.transform.localScale = Vector3.zero;
-        _optionsPanel.transform.DOScale(Vector3.one, _fadeDuration).SetEase(_ease);
-    }
-
-    public void OnCloseOptions()
-    {
-        _optionsPanel.transform.DOScale(Vector3.zero, _fadeDuration)
-            .SetEase(_ease).
-            OnComplete(() => _optionsPanel.SetActive(false));
-    }
-
+    public void OnQuitButton() => GameManager.Instance.OnApplicationQuit();
 
     // === Socials === 
 

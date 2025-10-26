@@ -1,92 +1,108 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class GenericForniture : MonoBehaviour
 {
+    // ==================== SETTINGS ====================
+    [Header("Activation")]
     [SerializeField] private bool _isON;
-    [SerializeField] private EventChannelForniture _activationChannel;
-
-    [SerializeField] private Transform _interactionPoint;
-
+    [SerializeField] private bool _canSetOff;
     [SerializeField] private UnityEvent _onActivate;
     [SerializeField] private UnityEvent _onDeactivate;
 
-    [SerializeField] private HazardSO _currentHazard;
+    [Header("Highlight")]
+    [SerializeField] private Color _highlightColor = Color.yellow;
+    [SerializeField] private float _emissionIntensity = 2f;
 
-    [SerializeField] private bool _canSetOff;
-
-    public event System.Action<GenericForniture> OnDeactivate;
+    // ==================== EVENTS ====================
     public event System.Action<GenericForniture> OnActivate;
+    public event System.Action<GenericForniture> OnDeactivate;
 
+    // ==================== PROPERTIES ====================
     public bool IsON => _isON;
-    public Collider EffectCollider { get; private set; }
-    public HazardSO CurrentHazard => _currentHazard;
 
+    // ==================== PRIVATE ====================
+    private Renderer[] _renderers;
+    private Dictionary<Renderer, Color> _originalEmissionColors;
 
+    // ==================== UNITY ====================
+    private void Awake()
+    {
+        InitializeRenderers();
+    }
+
+    private void OnMouseDown() => HandleClick();
+    private void OnMouseEnter() => SetEmission(true);
+    private void OnMouseExit() => SetEmission(false);
+
+    // ==================== METHODS ====================
     public void SetIsON(bool value)
     {
         if (_isON == value) return;
-
         _isON = value;
 
         if (_isON)
         {
-            _onActivate?.Invoke(); //Logica per effetti sonori o visivi
-            OnActivate?.Invoke(this); //Logica per gestione FSM
-            _activationChannel?.Raise(this);
+            _onActivate?.Invoke();
+            OnActivate?.Invoke(this);
         }
         else
         {
             _onDeactivate?.Invoke();
             OnDeactivate?.Invoke(this);
-            _activationChannel?.Raise(this);
         }
-
     }
-    protected virtual void OnMouseDown()
-    {
 
+    private void InitializeRenderers()
+    {
+        _renderers = GetComponentsInChildren<Renderer>();
+        _originalEmissionColors = new Dictionary<Renderer, Color>();
+
+        foreach (var renderer in _renderers)
+        {
+            foreach (var mat in renderer.materials)
+            {
+               
+                if (mat.HasProperty(ShaderPropertyIDs.Emission.Color))
+                    _originalEmissionColors[renderer] = mat.GetColor(ShaderPropertyIDs.Emission.Color);
+            }
+        }
+    }
+
+    private void SetEmission(bool enabled)
+    {
+        foreach (var renderer in _renderers)
+        {
+            foreach (var mat in renderer.materials)
+            {
+  
+                if (!mat.HasProperty(ShaderPropertyIDs.Emission.Color)) continue;
+
+                if (enabled)
+                {
+                    mat.EnableKeyword(ShaderPropertyIDs.Emission.Keyword);
+                    mat.SetColor(ShaderPropertyIDs.Emission.Color, _highlightColor * _emissionIntensity);
+                }
+                else
+                {
+                    if (_originalEmissionColors.TryGetValue(renderer, out Color original))
+                        mat.SetColor(ShaderPropertyIDs.Emission.Color, original);
+                    else
+                    {
+                        mat.DisableKeyword(ShaderPropertyIDs.Emission.Keyword);
+                        mat.SetColor(ShaderPropertyIDs.Emission.Color, Color.black);
+                    }
+                }
+            }
+        }
+    }
+
+    private void HandleClick()
+    {
         if (_isON && _canSetOff)
-        {
             SetIsON(false);
-        }
         else if (!_isON)
-        {
             SetIsON(true);
-        }
     }
-
-    public void Contaminate(HazardSO hazard)
-    {
-        if (hazard == null) return;
-        _currentHazard = hazard;
-        hazard.ApplyVisuals(gameObject);
-        Debug.Log($"{gameObject.name} contaminated with {hazard.hazardName}");
-
-        if (!_isON)
-        {
-            SetIsON(true);
-        }
-    }
-
-    public bool IsHazardous()
-    {
-        return _currentHazard != null;
-    }
-
-    public void Decontaminate()
-    {
-        if (_currentHazard != null)
-        {
-
-            _currentHazard.RevertVisuals(gameObject);
-            _currentHazard = null;
-        }
-
-        return;
-    }
-
 }

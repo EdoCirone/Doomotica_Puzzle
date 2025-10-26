@@ -7,8 +7,9 @@ using UnityEngine.SceneManagement;
 public class LVLManager : MonoBehaviour
 {
     public static LVLManager Instance { get; private set; }
+    public static event System.Action<LVLManager> OnInstanceReady; // Evento per notificare quando l'istanza è pronta
 
-    private List<OldCharacterFSM> _characters = new List<OldCharacterFSM>();
+    private List<CharacterFSM> _characters = new List<CharacterFSM>(); 
     private int _deadCount;
     private bool _isLevelEnded;
     private bool _isPaused;
@@ -19,25 +20,27 @@ public class LVLManager : MonoBehaviour
     public event Action onResumeEvent;
     public event Action onPauseEvent;
 
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            OnInstanceReady?.Invoke(this); // Notifica che l'istanza è pronta
         }
         else
         {
             Destroy(gameObject);
         }
     }
-
     private void Start()
     {
-        _characters.AddRange(FindObjectsOfType<OldCharacterFSM>());
+        _characters.AddRange(FindObjectsOfType<CharacterFSM>());
 
-        foreach (OldCharacterFSM character in _characters)
+        foreach (CharacterFSM character in _characters)
         {
-            character.OnCharacterDeath += OnCharacterDeath;
+            if (character != null)
+                character.OnCharacterDeath += OnCharacterDeath;
         }
     }
 
@@ -46,14 +49,16 @@ public class LVLManager : MonoBehaviour
         if (!_isLevelEnded && Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
-            Debug.Log ("Sono In Pausa");
+            Debug.Log("Sono In Pausa");
         }
     }
 
 
-    private void OnCharacterDeath(OldCharacterFSM character)
+    private void OnCharacterDeath(CharacterFSM character)
     {
         if (_isLevelEnded) return;
+
+        if (character != null) character.OnCharacterDeath -= OnCharacterDeath;
 
         _deadCount++;
         CheckWinCondition();
@@ -78,30 +83,48 @@ public class LVLManager : MonoBehaviour
         if (_isLevelEnded) return;
         _isLevelEnded = true;
 
+        StartCoroutine(ShowWinDelayed());
+    }
+
+    private IEnumerator ShowWinDelayed()
+    {
+        yield return new WaitForSecondsRealtime(1f);
         Time.timeScale = 0f;
         Debug.Log("Hai vinto!");
         onWinEvent?.Invoke();
+
     }
+
     private void OnLose()
     {
         if (_isLevelEnded) return;
         _isLevelEnded = true;
+        StartCoroutine(ShowLoseDelay());
 
+    }
+    IEnumerator ShowLoseDelay()
+    {
+        yield return new WaitForSecondsRealtime(1f);
         Time.timeScale = 0f;
         Debug.Log("Hai perso!");
         onLostEvent?.Invoke();
     }
 
-    public void TogglePause()
+    public void SetPause(bool paused)
     {
         if (_isLevelEnded) return;
+        if (_isPaused == paused) return;
 
-        _isPaused = !_isPaused;
+        _isPaused = paused;
         Time.timeScale = _isPaused ? 0f : 1f;
 
         if (_isPaused) onPauseEvent?.Invoke();
         else onResumeEvent?.Invoke();
     }
+
+    public void Resume() => SetPause(false);
+    public void Pause() => SetPause(true);
+    public void TogglePause() => SetPause(!_isPaused);
 
     public void ResetLevel()
     {
@@ -112,7 +135,7 @@ public class LVLManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        foreach (OldCharacterFSM character in _characters)
+        foreach (CharacterFSM character in _characters)
         {
             character.OnCharacterDeath -= OnCharacterDeath;
         }

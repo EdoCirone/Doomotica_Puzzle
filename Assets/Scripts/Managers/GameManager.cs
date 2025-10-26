@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -22,6 +20,7 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         UnlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
+        CurrentLevelIndex = PlayerPrefs.GetInt("CurrentLevelIndex", 1);
     }
 
     public void NewGame()
@@ -44,6 +43,8 @@ public class GameManager : MonoBehaviour
     public void LoadLevel(int index)
     {
         CurrentLevelIndex = index;
+        PlayerPrefs.SetInt("CurrentLevelIndex", index);
+        PlayerPrefs.Save();
         SceneManager.LoadScene($"LVL_{index:D2}");
 
     }
@@ -59,7 +60,7 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        if (Application.CanStreamedLevelBeLoaded($"Level_{nextLevelIndex:D2}"))
+        if (Application.CanStreamedLevelBeLoaded($"LVL_{nextLevelIndex:D2}"))
         {
             LoadLevel(nextLevelIndex);
         }
@@ -73,7 +74,7 @@ public class GameManager : MonoBehaviour
     public void ResetLevel()
     {
 
-        SceneManager.LoadScene($"Level_{CurrentLevelIndex:D2}");
+        SceneManager.LoadScene($"LVL_{CurrentLevelIndex:D2}");
     }
 
     public void ReturnToMenu()

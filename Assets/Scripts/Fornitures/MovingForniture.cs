@@ -20,7 +20,7 @@ public class MovingForniture : GenericForniture
         }
     }
 
-    protected override void OnMouseDown()
+    protected  void OnMouseDown()
     {
         if (waypoints.Length == 0) return;
 
