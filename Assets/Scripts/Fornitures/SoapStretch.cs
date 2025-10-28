@@ -17,7 +17,6 @@ public class SoapStretch : MonoBehaviour
     {
         _originalScale = transform.localScale;
 
-        // parte "chiuso"
         switch (_stretchAxis)
         {
             case Axis.Y:

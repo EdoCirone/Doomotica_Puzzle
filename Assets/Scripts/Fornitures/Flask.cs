@@ -13,6 +13,8 @@ public class Flask : MonoBehaviour
 
     [Header("Effetto Sapone (opzionale)")]
     [SerializeField] private SoapStretch _soap;
+    [SerializeField] private float _soapDelay = 0.1f; // delay in secondi
+
 
     private bool _hasFallen; // true dopo la prima caduta
     private Tween _rotationTween;
@@ -46,7 +48,8 @@ public class Flask : MonoBehaviour
             .DOLocalRotate(_fallEuler, _fallDuration)
             .SetEase(_fallEase);
 
-        // Attiva l’uscita del sapone
-        _soap?.StartStretch();
+        // Attiva l’uscita del sapone dopo il Delay
+        DOVirtual.DelayedCall(_soapDelay, () => _soap?.StartStretch());
+
     }
 }
