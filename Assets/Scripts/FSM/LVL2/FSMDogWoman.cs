@@ -259,8 +259,10 @@ public class FSMDogWomanLVLTwo : CharacterFSM
         yield return new WaitForSeconds(0.3f);
 
         _isInteracting = false;
-        SetState(STATE.COMEBACK); // Torna al divano
+        _currentTask = TaskType.FetchingFood; // Mantieni il compito
+        SetState(STATE.COMEBACK);
     }
+
 
     // ========================================
     // ROUTINE: Mangia il cibo
@@ -272,6 +274,7 @@ public class FSMDogWomanLVLTwo : CharacterFSM
         if (_currentFood != null && _currentFood.IsPoisoned)
         {
             // Avvelenato → MUORE → Vittoria
+            Debug.Log("[FSMDogWomanLVLTwo] Cibo avvelenato! La donna muore.");
             SetState(STATE.DEATH);
         }
         else

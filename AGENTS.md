@@ -2,7 +2,7 @@
 - Project name: Doomotica_Puzzle
 - Unity version: Unity 2022.3.62f2
 - Active game object:
-  - Name: VacuumCleaner
+  - Name: DogWomanCharacter
   - Tag: Untagged
-  - Layer: Default
+  - Layer: Character
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

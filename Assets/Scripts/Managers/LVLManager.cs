@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,9 +7,9 @@ using UnityEngine.SceneManagement;
 public class LVLManager : MonoBehaviour
 {
     public static LVLManager Instance { get; private set; }
-    public static event System.Action<LVLManager> OnInstanceReady; // Evento per notificare quando l'istanza è pronta
+    public static event System.Action<LVLManager> OnInstanceReady; // Evento per notificare quando l'istanza Ã¨ pronta
 
-    private List<CharacterFSM> _characters = new List<CharacterFSM>(); 
+    private List<CharacterFSM> _characters = new List<CharacterFSM>();
     private int _deadCount;
     private bool _isLevelEnded;
     private bool _isPaused;
@@ -26,7 +26,7 @@ public class LVLManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            OnInstanceReady?.Invoke(this); // Notifica che l'istanza è pronta
+            OnInstanceReady?.Invoke(this); // Notifica che l'istanza Ã¨ pronta
         }
         else
         {
@@ -37,11 +37,16 @@ public class LVLManager : MonoBehaviour
     {
         _characters.AddRange(FindObjectsOfType<CharacterFSM>());
 
+        // Filtra quelli che non contano per la vittoria
+        _characters.RemoveAll(c => !c.CountsForWin);
+
         foreach (CharacterFSM character in _characters)
         {
             if (character != null)
                 character.OnCharacterDeath += OnCharacterDeath;
         }
+
+        Debug.Log($"[LVLManager] Personaggi registrati per la vittoria: {_characters.Count}");
     }
 
     public void Update()

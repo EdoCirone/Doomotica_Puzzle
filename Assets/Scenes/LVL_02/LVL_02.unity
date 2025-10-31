@@ -896,7 +896,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.016666668
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: e3e9b85e7a152e543998100e8021972d, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 82041efe13e5c9f43b72b45228cd8d0e, type: 2}
   m_BuildHeightMesh: 0
 --- !u!114 &122856565
 MonoBehaviour:
@@ -2861,6 +2861,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentState: 0
+  _countsForWin: 0
   _home: {fileID: 1638316865}
   _carryPoint: {fileID: 558011947}
   _bowlOriginalSpot: {fileID: 2110649686}
@@ -2869,7 +2870,6 @@ MonoBehaviour:
   _eatDuration: 2
   _interactionTime: 1
   _checkInterval: 0.5
-  _alexa: {fileID: 0}
 --- !u!1001 &608543594
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3819,7 +3819,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3519232107278064469, guid: cb7526e880e0fa940bbb3b4771426935,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 941912274}
   m_SourcePrefab: {fileID: 100100000, guid: cb7526e880e0fa940bbb3b4771426935, type: 3}
 --- !u!1001 &823299866
 PrefabInstance:
@@ -4165,6 +4169,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &941912269 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3519232107278064469, guid: cb7526e880e0fa940bbb3b4771426935,
+    type: 3}
+  m_PrefabInstance: {fileID: 812981381}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &941912274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941912269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &960399317
 GameObject:
   m_ObjectHideFlags: 0
@@ -4279,7 +4308,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 987437066}
-  - component: {fileID: 987437065}
+  - component: {fileID: 987437067}
   m_Layer: 0
   m_Name: LVLManager
   m_TagString: Untagged
@@ -4287,18 +4316,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &987437065
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 987437064}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a6bf7b93b926564096c759e4b9eaf72, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &987437066
 Transform:
   m_ObjectHideFlags: 0
@@ -4314,6 +4331,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &987437067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987437064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6bf7b93b926564096c759e4b9eaf72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &987958784
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8193,6 +8222,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentState: 0
+  _countsForWin: 1
   _home: {fileID: 103519162}
   _carryPoint: {fileID: 1836588828}
   _bowlSpot: {fileID: 2110649686}

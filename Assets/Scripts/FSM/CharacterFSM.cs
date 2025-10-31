@@ -5,6 +5,8 @@ using UnityEngine;
 public abstract class CharacterFSM : MonoBehaviour
 {
     [SerializeField] protected STATE _currentState;
+    [SerializeField] protected bool _countsForWin = true;
+    public bool CountsForWin => _countsForWin;
 
     public bool isDeath { get; protected set; } = false;
 
