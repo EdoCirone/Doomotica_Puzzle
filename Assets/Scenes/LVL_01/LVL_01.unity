@@ -8155,6 +8155,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: MomCharacter
       objectReference: {fileID: 0}
+    - target: {fileID: 4412958541896329973, guid: 8e64b383a09c1284cbb620d528d79a69,
+        type: 3}
+      propertyPath: avoidancePriority
+      value: 99
+      objectReference: {fileID: 0}
     - target: {fileID: 8331681153962074805, guid: 8e64b383a09c1284cbb620d528d79a69,
         type: 3}
       propertyPath: _tv
