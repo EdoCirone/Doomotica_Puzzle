@@ -3,28 +3,43 @@ using UnityEngine;
 
 /// <summary>
 /// FSM della donna nel livello 2.
-/// Aspetta che il robot consegni il cibo, lo raccoglie, torna al divano e lo mangia.
-/// Se il cibo è avvelenato → muore (vittoria), altrimenti → perdita.
+/// - Aspetta che il robot consegni il cibo → lo prende e mangia (vittoria se avvelenato)
+/// - Se il cane abbaia → va a prendere la ciotola e la mette sotto il dispenser
 /// </summary>
 public class FSMDogWomanLVLTwo : CharacterFSM
 {
     [Header("Punti di riferimento")]
-    [SerializeField] private Transform _home;          // Divano/TV dove sta inizialmente
-    [SerializeField] private Transform _carryPoint;    // Dove tiene il cibo in mano (es. "Hand")
+    [SerializeField] private Transform _home;              // Divano dove sta inizialmente
+    [SerializeField] private Transform _carryPoint;        // Dove tiene gli oggetti in mano
+    [SerializeField] private Transform _bowlSpot;          // Dove sta la ciotola inizialmente
+    [SerializeField] private Transform _dispenserSpot;     // Dove posare la ciotola (sotto il dispenser)
+
+    [Header("Oggetti")]
+    [SerializeField] private CarriableObject _bowl;        // La ciotola del cane
 
     [Header("Parametri")]
-    [SerializeField] private float _eatDuration = 3f;      // Tempo per mangiare (animazione)
-    [SerializeField] private float _reactionDelay = 0.5f;  // Delay prima di andare a prendere il cibo
+    [SerializeField] private float _eatDuration = 3f;
+    [SerializeField] private float _reactionDelay = 0.5f;
+    [SerializeField] private float _interactionTime = 1f;  // Tempo per posare/prendere oggetti
 
-    private PoisonableFood _currentFood = null;  // Riferimento al cibo corrente
-    private bool _isInteracting = false;         // Flag per evitare sovrapposizioni
+    private PoisonableFood _currentFood = null;
+    private bool _isInteracting = false;
+    private TaskType _currentTask = TaskType.None;  // Cosa sta facendo la donna
+
+    // Enum per distinguere le azioni
+    private enum TaskType
+    {
+        None,
+        FetchingFood,    // Sta andando a prendere il cibo del robot
+        MovingBowl       // Sta spostando la ciotola del cane
+    }
 
     protected override void Start()
     {
         base.Start();
         _currentState = STATE.IDLE;
 
-        // Si registra all'evento del robot quando rilascia il cibo
+        // Si registra all'evento del robot
         Carrier robotCarrier = FindObjectOfType<Carrier>();
         if (robotCarrier != null)
         {
@@ -33,24 +48,47 @@ public class FSMDogWomanLVLTwo : CharacterFSM
     }
 
     // ========================================
-    // CALLBACK: Il robot ha consegnato il cibo
+    // EVENTI ESTERNI
     // ========================================
+
+    /// <summary>
+    /// Chiamato quando il cane abbaia
+    /// </summary>
+    public void OnDogBark()
+    {
+        if (isDeath || _isInteracting) return;
+        if (_currentState != STATE.IDLE) return; // Ignora se sta già facendo qualcosa
+
+        _currentTask = TaskType.MovingBowl;
+        StartCoroutine(ReactToBark());
+    }
+
+    /// <summary>
+    /// Chiamato quando il robot consegna il cibo
+    /// </summary>
     public void OnFoodDelivered(CarriableObject deliveredObject)
     {
         if (isDeath || _isInteracting) return;
+        if (_currentState != STATE.IDLE) return;
 
-        // Verifica che sia effettivamente cibo
         PoisonableFood food = deliveredObject.GetComponent<PoisonableFood>();
         if (food == null) return;
 
         _currentFood = food;
+        _currentTask = TaskType.FetchingFood;
         StartCoroutine(ReactToDelivery());
+    }
+
+    private IEnumerator ReactToBark()
+    {
+        yield return new WaitForSeconds(_reactionDelay);
+        SetState(STATE.WALK); // Va verso la ciotola
     }
 
     private IEnumerator ReactToDelivery()
     {
         yield return new WaitForSeconds(_reactionDelay);
-        SetState(STATE.WALK); // Va a prendere il cibo
+        SetState(STATE.WALK); // Va verso il cibo
     }
 
     // ========================================
@@ -64,19 +102,14 @@ public class FSMDogWomanLVLTwo : CharacterFSM
 
     protected override void WalkState()
     {
-        if (_currentFood == null)
+        // Destinazione diversa in base al task corrente
+        if (_currentTask == TaskType.MovingBowl)
         {
-            SetState(STATE.IDLE);
-            return;
+            WalkToBowl();
         }
-
-        // Si muove verso il cibo
-        _mover?.MoveTo(_currentFood.transform);
-
-        // Quando arriva vicino, lo raccoglie
-        if (Vector3.Distance(transform.position, _currentFood.transform.position) < 0.8f)
+        else if (_currentTask == TaskType.FetchingFood)
         {
-            SetState(STATE.INTERACT);
+            WalkToFood();
         }
     }
 
@@ -84,7 +117,16 @@ public class FSMDogWomanLVLTwo : CharacterFSM
     {
         if (_isInteracting) return;
         _isInteracting = true;
-        StartCoroutine(PickupFoodRoutine());
+
+        // Interazione diversa in base al task
+        if (_currentTask == TaskType.MovingBowl)
+        {
+            StartCoroutine(MoveBowlSequence());
+        }
+        else if (_currentTask == TaskType.FetchingFood)
+        {
+            StartCoroutine(PickupFoodRoutine());
+        }
     }
 
     protected override void ComeBackState()
@@ -95,16 +137,22 @@ public class FSMDogWomanLVLTwo : CharacterFSM
             return;
         }
 
-        // Torna al divano
         _mover?.MoveTo(_home);
 
-        // Quando arriva, mangia
         if (Vector3.Distance(transform.position, _home.position) < 0.5f)
         {
-            if (!_isInteracting)
+            // Se ha il cibo, lo mangia
+            if (_currentTask == TaskType.FetchingFood && !_isInteracting)
             {
                 _isInteracting = true;
                 StartCoroutine(EatFoodRoutine());
+            }
+            // Se ha finito con la ciotola, torna in idle
+            else if (_currentTask == TaskType.MovingBowl)
+            {
+                _currentTask = TaskType.None;
+                _isInteracting = false;
+                SetState(STATE.IDLE);
             }
         }
     }
@@ -116,13 +164,89 @@ public class FSMDogWomanLVLTwo : CharacterFSM
     }
 
     // ========================================
+    // LOGICA: Cammina verso la ciotola
+    // ========================================
+    private void WalkToBowl()
+    {
+        if (_bowlSpot == null)
+        {
+            SetState(STATE.IDLE);
+            return;
+        }
+
+        _mover?.MoveTo(_bowlSpot);
+
+        if (Vector3.Distance(transform.position, _bowlSpot.position) < 0.8f)
+        {
+            SetState(STATE.INTERACT); // Raccoglie la ciotola
+        }
+    }
+
+    // ========================================
+    // LOGICA: Cammina verso il cibo
+    // ========================================
+    private void WalkToFood()
+    {
+        if (_currentFood == null)
+        {
+            SetState(STATE.IDLE);
+            return;
+        }
+
+        _mover?.MoveTo(_currentFood.transform);
+
+        if (Vector3.Distance(transform.position, _currentFood.transform.position) < 0.8f)
+        {
+            SetState(STATE.INTERACT); // Raccoglie il cibo
+        }
+    }
+
+    // ========================================
+    // ROUTINE: Sposta la ciotola (sequenza completa)
+    // ========================================
+    private IEnumerator MoveBowlSequence()
+    {
+        // 1. Raccoglie la ciotola
+        yield return new WaitForSeconds(_interactionTime);
+
+        if (_bowl != null && _carryPoint != null)
+        {
+            _bowl.OnPickedUp(_carryPoint);
+        }
+
+        yield return new WaitForSeconds(0.3f);
+
+        // 2. Va verso il dispenser
+        _isInteracting = false;
+        while (Vector3.Distance(transform.position, _dispenserSpot.position) > 0.8f)
+        {
+            _mover?.MoveTo(_dispenserSpot);
+            yield return null;
+        }
+
+        // 3. Posa la ciotola sotto il dispenser
+        _isInteracting = true;
+        yield return new WaitForSeconds(_interactionTime);
+
+        if (_bowl != null)
+        {
+            _bowl.OnDropped(_dispenserSpot.position);
+        }
+
+        yield return new WaitForSeconds(0.3f);
+
+        // 4. Torna al divano
+        _isInteracting = false;
+        SetState(STATE.COMEBACK);
+    }
+
+    // ========================================
     // ROUTINE: Raccoglie il cibo
     // ========================================
     private IEnumerator PickupFoodRoutine()
     {
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(_interactionTime);
 
-        // Attacca il cibo al carry point
         if (_currentFood != null && _carryPoint != null)
         {
             CarriableObject carriable = _currentFood.GetComponent<CarriableObject>();
@@ -139,14 +263,12 @@ public class FSMDogWomanLVLTwo : CharacterFSM
     }
 
     // ========================================
-    // ROUTINE: Mangia e controlla avvelenamento
+    // ROUTINE: Mangia il cibo
     // ========================================
     private IEnumerator EatFoodRoutine()
     {
-        // Animazione mangiare (per ora solo pausa)
         yield return new WaitForSeconds(_eatDuration);
 
-        // Controlla se il cibo era avvelenato
         if (_currentFood != null && _currentFood.IsPoisoned)
         {
             // Avvelenato → MUORE → Vittoria
@@ -161,13 +283,13 @@ public class FSMDogWomanLVLTwo : CharacterFSM
             }
         }
 
-        // Distrugge il cibo dopo averlo mangiato
         if (_currentFood != null)
         {
             Destroy(_currentFood.gameObject);
         }
 
         _currentFood = null;
+        _currentTask = TaskType.None;
         _isInteracting = false;
     }
 
