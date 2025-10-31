@@ -4,10 +4,13 @@ using DG.Tweening;
 public class SoapStretch : MonoBehaviour
 {
     [Header("Target scale (lunghezza finale del getto)")]
-    [SerializeField] private float _targetLength = 1f; // scala finale sull'asse Y o Z
-    [SerializeField] private Axis _stretchAxis = Axis.Y; // asse di crescita
+    [SerializeField] private float _targetLength = 1f;
+    [SerializeField] private Axis _stretchAxis = Axis.Y;
     [SerializeField] private float _stretchDuration = 1f;
     [SerializeField] private Ease _easeOut = Ease.OutQuad;
+
+    [Header("Trigger Poison")]
+    [SerializeField] private SoapPoisonTrigger _poisonTrigger; // <-- AGGIUNTO
 
     private Tween _scaleTween;
     private bool _hasStretched;
@@ -28,18 +31,20 @@ public class SoapStretch : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Avvia l'uscita del sapone (scala una sola volta e poi rimane esteso).
-    /// </summary>
     public void StartStretch()
     {
-        if (_hasStretched) return;
-        _hasStretched = true;
+        Debug.Log("[SoapStretch] StartStretch() chiamato!"); // <-- AGGIUNGI QUESTO
 
+        if (_hasStretched)
+        {
+            Debug.Log("[SoapStretch] Già stretched, ignoro");
+            return;
+        }
+
+        _hasStretched = true;
         _scaleTween?.Kill();
 
         Vector3 targetScale = _originalScale;
-
         switch (_stretchAxis)
         {
             case Axis.Y:
@@ -50,11 +55,52 @@ public class SoapStretch : MonoBehaviour
                 break;
         }
 
+        Debug.Log($"[SoapStretch] Inizio tween verso {targetScale}");
+
         _scaleTween = transform
             .DOScale(targetScale, _stretchDuration)
-            .SetEase(_easeOut);
+            .SetEase(_easeOut)
+            .OnComplete(() =>
+            {
+                Debug.Log("[SoapStretch] Tween completato!");
+                if (_poisonTrigger != null)
+                {
+                    _poisonTrigger.ActivateTrigger();
+                }
+                else
+                {
+                    Debug.LogError("[SoapStretch] _poisonTrigger è NULL!");
+                }
+            });
     }
 
-    // Enum per scegliere su quale asse cresce il getto
+    // Metodo per fermare/ritirare il getto (opzionale)
+    public void StopStretch()
+    {
+        _scaleTween?.Kill();
+
+        Vector3 targetScale = _originalScale;
+        switch (_stretchAxis)
+        {
+            case Axis.Y:
+                targetScale.y = 0f;
+                break;
+            case Axis.Z:
+                targetScale.z = 0f;
+                break;
+        }
+
+        _scaleTween = transform
+            .DOScale(targetScale, _stretchDuration * 0.5f)
+            .SetEase(Ease.InQuad)
+            .OnComplete(() =>
+            {
+                if (_poisonTrigger != null)
+                {
+                    _poisonTrigger.DeactivateTrigger();
+                }
+            });
+    }
+
     private enum Axis { Y, Z }
 }

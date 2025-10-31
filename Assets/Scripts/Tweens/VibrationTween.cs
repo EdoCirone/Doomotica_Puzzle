@@ -13,6 +13,7 @@ public class VibrationTween : MonoBehaviour
     [SerializeField] private int _vibrato = 30;            // quante oscillazioni per ciclo
     [SerializeField] private bool _fadeOut = true;         // attenua fine di ogni ciclo
     [SerializeField] private bool _ignoreTimeScale = false;
+    [SerializeField] private bool StartOnAwake = false;
 
     private Vector3 _originalLocalPosition;
     private Tween _vibrationTween;
@@ -20,6 +21,15 @@ public class VibrationTween : MonoBehaviour
     private void Awake()
     {
         _originalLocalPosition = transform.localPosition;
+    }
+
+    private void Start()
+    {
+        if(StartOnAwake)
+        {
+            StartVibrating();
+        }
+        
     }
 
     /// <summary>

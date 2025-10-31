@@ -33,6 +33,7 @@ public class MainMenuManager : MonoBehaviour
     public void OnSelectLevelButton() => GameManager.Instance.LoadLevelSelection();
     public void OnCreditsButton() => GameManager.Instance.LoadCreditsScene();
     public void OnQuitButton() => GameManager.Instance.OnApplicationQuit();
+ 
 
     // === Socials === 
 
