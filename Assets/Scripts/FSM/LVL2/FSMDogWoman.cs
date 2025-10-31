@@ -1,165 +1,185 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// FSM della donna nel livello 2.
+/// Aspetta che il robot consegni il cibo, lo raccoglie, torna al divano e lo mangia.
+/// Se il cibo è avvelenato → muore (vittoria), altrimenti → perdita.
+/// </summary>
 public class FSMDogWomanLVLTwo : CharacterFSM
 {
-    [Header("References")]
-    [SerializeField] private Transform _home;             // posizione TV/sedia
-    [SerializeField] private Transform _bowlSpot;         // posizione iniziale della ciotola
-    [SerializeField] private Transform _dispenserSpot;    // dove posare la ciotola
-    [SerializeField] private Transform _pizzaSpot;        // punto dove arriva la pizza
-    [SerializeField] private CarriableObject _bowl;       // la ciotola
-    [SerializeField] private Transform _carryPoint;       // punto dove la donna tiene la ciotola
-    [SerializeField] private float _interactionTime = 2f; // tempo per interazioni
+    [Header("Punti di riferimento")]
+    [SerializeField] private Transform _home;          // Divano/TV dove sta inizialmente
+    [SerializeField] private Transform _carryPoint;    // Dove tiene il cibo in mano (es. "Hand")
 
-    private bool _heardBark = false;
-    private bool _pizzaArrived = false;
-    private bool _isInteracting = false;
+    [Header("Parametri")]
+    [SerializeField] private float _eatDuration = 3f;      // Tempo per mangiare (animazione)
+    [SerializeField] private float _reactionDelay = 0.5f;  // Delay prima di andare a prendere il cibo
 
-    public bool isDistracted { get; private set; } = false;
+    private PoisonableFood _currentFood = null;  // Riferimento al cibo corrente
+    private bool _isInteracting = false;         // Flag per evitare sovrapposizioni
 
     protected override void Start()
     {
         base.Start();
-        isDistracted = false;
         _currentState = STATE.IDLE;
+
+        // Si registra all'evento del robot quando rilascia il cibo
+        Carrier robotCarrier = FindObjectOfType<Carrier>();
+        if (robotCarrier != null)
+        {
+            robotCarrier.onDrop.AddListener(OnFoodDelivered);
+        }
     }
 
-    // ======================
-    // EVENTI ESTERNI
-    // ======================
-    public void OnDogBark()
+    // ========================================
+    // CALLBACK: Il robot ha consegnato il cibo
+    // ========================================
+    public void OnFoodDelivered(CarriableObject deliveredObject)
     {
-        if (isDeath) return;
-        _heardBark = true;
+        if (isDeath || _isInteracting) return;
+
+        // Verifica che sia effettivamente cibo
+        PoisonableFood food = deliveredObject.GetComponent<PoisonableFood>();
+        if (food == null) return;
+
+        _currentFood = food;
+        StartCoroutine(ReactToDelivery());
     }
 
-    public void OnPizzaArrived()
+    private IEnumerator ReactToDelivery()
     {
-        if (isDeath) return;
-        _pizzaArrived = true;
+        yield return new WaitForSeconds(_reactionDelay);
+        SetState(STATE.WALK); // Va a prendere il cibo
     }
 
-    // ======================
+    // ========================================
     // STATI
-    // ======================
+    // ========================================
+
     protected override void IdleState()
     {
-        if (_heardBark && !isDistracted)
-        {
-            _heardBark = false;
-            SetState(STATE.WALK);
-        }
-
-        if (_pizzaArrived && !isDistracted)
-        {
-            _pizzaArrived = false;
-            SetState(STATE.INTERACT); // va verso la pizza
-        }
+        // Aspetta sul divano
     }
 
     protected override void WalkState()
     {
-        if (_bowlSpot == null) return;
-
-        _mover?.MoveTo(_bowlSpot);
-
-        if (Vector3.Distance(transform.position, _bowlSpot.position) < 1f)
+        if (_currentFood == null)
         {
-            isDistracted = true;
-            SetState(STATE.INTERACT); // raccoglie la ciotola
+            SetState(STATE.IDLE);
+            return;
+        }
+
+        // Si muove verso il cibo
+        _mover?.MoveTo(_currentFood.transform);
+
+        // Quando arriva vicino, lo raccoglie
+        if (Vector3.Distance(transform.position, _currentFood.transform.position) < 0.8f)
+        {
+            SetState(STATE.INTERACT);
         }
     }
 
     protected override void InteractState()
     {
         if (_isInteracting) return;
-
         _isInteracting = true;
-
-        // Decide quale interazione eseguire
-        if (isDistracted && _bowl != null)
-        {
-            // Caso: sposta la ciotola sotto il dispenser
-            StartCoroutine(MoveBowlRoutine());
-        }
-        else if (_pizzaSpot != null)
-        {
-            // Caso: va a prendere la pizza e muore
-            StartCoroutine(FetchPizzaRoutine());
-        }
+        StartCoroutine(PickupFoodRoutine());
     }
 
     protected override void ComeBackState()
     {
-        if (_home == null) return;
-
-        _mover?.MoveTo(_home);
-
-        if (Vector3.Distance(transform.position, _home.position) < 0.5f)
+        if (_home == null)
         {
             SetState(STATE.IDLE);
-            isDistracted = false;
+            return;
+        }
+
+        // Torna al divano
+        _mover?.MoveTo(_home);
+
+        // Quando arriva, mangia
+        if (Vector3.Distance(transform.position, _home.position) < 0.5f)
+        {
+            if (!_isInteracting)
+            {
+                _isInteracting = true;
+                StartCoroutine(EatFoodRoutine());
+            }
         }
     }
 
     protected override void DeathState()
     {
         base.DeathState();
-        Debug.Log("Donna morta (FSMDogWomanLVLTwo)");
+        // Morte per avvelenamento → VITTORIA
     }
 
-    // ======================
-    // ROUTINE: sposta ciotola
-    // ======================
-    private IEnumerator MoveBowlRoutine()
+    // ========================================
+    // ROUTINE: Raccoglie il cibo
+    // ========================================
+    private IEnumerator PickupFoodRoutine()
     {
-        // Raccoglie la ciotola
-        if (_bowl != null && _carryPoint != null)
-        {
-            _bowl.OnPickedUp(_carryPoint);
-            Debug.Log("Donna raccoglie la ciotola");
-        }
+        yield return new WaitForSeconds(0.3f);
 
-        yield return new WaitForSeconds(0.5f);
-
-        // Si muove verso il dispenser
-        if (_dispenserSpot != null)
+        // Attacca il cibo al carry point
+        if (_currentFood != null && _carryPoint != null)
         {
-            while (Vector3.Distance(transform.position, _dispenserSpot.position) > 0.6f)
+            CarriableObject carriable = _currentFood.GetComponent<CarriableObject>();
+            if (carriable != null)
             {
-                _mover.MoveTo(_dispenserSpot);
-                yield return null;
+                carriable.OnPickedUp(_carryPoint);
             }
-
-            // Posiziona la ciotola
-            _bowl.OnDropped(_dispenserSpot.position);
-            Debug.Log("Donna posa la ciotola sotto il dispenser");
         }
 
-        yield return new WaitForSeconds(_interactionTime);
+        yield return new WaitForSeconds(0.3f);
+
         _isInteracting = false;
-        SetState(STATE.COMEBACK);
+        SetState(STATE.COMEBACK); // Torna al divano
     }
 
-    // ======================
-    // ROUTINE: prende la pizza e muore
-    // ======================
-    private IEnumerator FetchPizzaRoutine()
+    // ========================================
+    // ROUTINE: Mangia e controlla avvelenamento
+    // ========================================
+    private IEnumerator EatFoodRoutine()
     {
-        Debug.Log("Donna va a prendere la pizza...");
+        // Animazione mangiare (per ora solo pausa)
+        yield return new WaitForSeconds(_eatDuration);
 
-        // Si muove verso la pizza
-        if (_pizzaSpot != null)
+        // Controlla se il cibo era avvelenato
+        if (_currentFood != null && _currentFood.IsPoisoned)
         {
-            while (Vector3.Distance(transform.position, _pizzaSpot.position) > 0.6f)
+            // Avvelenato → MUORE → Vittoria
+            SetState(STATE.DEATH);
+        }
+        else
+        {
+            // Cibo pulito → PERDITA
+            if (LVLManager.Instance != null)
             {
-                _mover.MoveTo(_pizzaSpot);
-                yield return null;
+                LVLManager.Instance.RegisterLose();
             }
         }
 
-        yield return new WaitForSeconds(1f);
-        SetState(STATE.DEATH); // muore quando arriva
+        // Distrugge il cibo dopo averlo mangiato
+        if (_currentFood != null)
+        {
+            Destroy(_currentFood.gameObject);
+        }
+
+        _currentFood = null;
+        _isInteracting = false;
+    }
+
+    // ========================================
+    // CLEANUP
+    // ========================================
+    private void OnDestroy()
+    {
+        Carrier robotCarrier = FindObjectOfType<Carrier>();
+        if (robotCarrier != null)
+        {
+            robotCarrier.onDrop.RemoveListener(OnFoodDelivered);
+        }
     }
 }
