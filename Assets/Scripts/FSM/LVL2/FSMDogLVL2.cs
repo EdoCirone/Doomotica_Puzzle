@@ -34,12 +34,17 @@ public class FSMDogLVLTwo : CharacterFSM
         base.Start();
         _currentState = STATE.IDLE;
 
+        if (_home == null) return;
+
+        transform.position = _home.position;
+        
+
         //if (_alexa != null)
         //    Debug.LogWarning("Non hai assegnato alexa al cane");
-                
+
     }
 
-   protected override void Update()
+    protected override void Update()
     {
         base.Update();
         // Controlla periodicamente se la ciotola è vicina (solo in IDLE)
@@ -75,7 +80,7 @@ public class FSMDogLVLTwo : CharacterFSM
         yield return new WaitForSeconds(0.5f);
 
         // Notifica la donna
-        FSMDogWomanLVLTwo woman = FindObjectOfType<FSMDogWomanLVLTwo>();
+        FSMDogWomanLVLTwo woman = FindFirstObjectByType<FSMDogWomanLVLTwo>();
         if (woman != null)
         {
             woman.OnDogBark();
@@ -167,7 +172,14 @@ public class FSMDogLVLTwo : CharacterFSM
             return;
         }
 
-        _mover?.MoveTo(_bowl.transform);
+        if (_mover == null)
+        {
+            Debug.LogWarning("[Dog] Mover non assegnato!");
+            SetState(STATE.IDLE);
+            return;
+        }
+
+        _mover.MoveTo(_bowl.transform);
 
         if (Vector3.Distance(transform.position, _bowl.transform.position) < 0.8f)
         {
@@ -186,7 +198,14 @@ public class FSMDogLVLTwo : CharacterFSM
             return;
         }
 
-        _mover?.MoveTo(_bowlOriginalSpot);
+        if(_mover == null)
+        {
+            Debug.LogWarning("[Dog] Mover non assegnato!");
+            SetState(STATE.IDLE);
+            return;
+        }
+
+        _mover.MoveTo(_bowlOriginalSpot);
 
         if (Vector3.Distance(transform.position, _bowlOriginalSpot.position) < 0.8f)
         {
@@ -240,6 +259,7 @@ public class FSMDogLVLTwo : CharacterFSM
         if (poisonableFood != null && poisonableFood.IsPoisoned)
         {
             Debug.Log("[Dog] Il cibo era avvelenato! Muore...");
+            _isInteracting = false;
             SetState(STATE.DEATH); // PERDITA
         }
         else

@@ -17,7 +17,7 @@ public class FallingFood_Parabola : MonoBehaviour
     [SerializeField] private Transform _endPoint;     // posizione finale (pavimento)
     [SerializeField] private float _duration = 1.2f;
     [SerializeField] private float _arcHeight = 0.6f; // altezza del picco della parabola
-    [SerializeField] private Ease _ease = Ease.Linear;
+    //[SerializeField] private Ease _ease = Ease.Linear;
 
     [Header("Effetti opzionali")]
     [SerializeField] private UnityEngine.Events.UnityEvent _onFallStart;

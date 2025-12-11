@@ -40,7 +40,7 @@ public class FSMDogWomanLVLTwo : CharacterFSM
         _currentState = STATE.IDLE;
 
         // Si registra all'evento del robot
-        Carrier robotCarrier = FindObjectOfType<Carrier>();
+        Carrier robotCarrier = FindFirstObjectByType<Carrier>();
         if (robotCarrier != null)
         {
             robotCarrier.onDrop.AddListener(OnFoodDelivered);
@@ -133,6 +133,13 @@ public class FSMDogWomanLVLTwo : CharacterFSM
     {
         if (_home == null)
         {
+            SetState(STATE.IDLE);
+            return;
+        }
+
+        if (_mover == null)
+        {
+            Debug.LogWarning("[FSMDogWomanLVLTwo] NavMeshMovement non trovato!");
             SetState(STATE.IDLE);
             return;
         }
@@ -301,7 +308,7 @@ public class FSMDogWomanLVLTwo : CharacterFSM
     // ========================================
     private void OnDestroy()
     {
-        Carrier robotCarrier = FindObjectOfType<Carrier>();
+        Carrier robotCarrier =  FindFirstObjectByType<Carrier>();
         if (robotCarrier != null)
         {
             robotCarrier.onDrop.RemoveListener(OnFoodDelivered);

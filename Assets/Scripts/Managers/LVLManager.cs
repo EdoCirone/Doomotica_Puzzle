@@ -35,21 +35,21 @@ public class LVLManager : MonoBehaviour
     }
     private void Start()
     {
-        _characters.AddRange(FindObjectsOfType<CharacterFSM>());
 
-        // Filtra quelli che non contano per la vittoria
-        _characters.RemoveAll(c => !c.CountsForWin);
+        var found = FindObjectsByType<CharacterFSM>(FindObjectsSortMode.None);
 
-        foreach (CharacterFSM character in _characters)
+        foreach (CharacterFSM character in found)
         {
-            if (character != null)
-                character.OnCharacterDeath += OnCharacterDeath;
+
+            CharacterRegistration(character);
+
         }
+
 
         Debug.Log($"[LVLManager] Personaggi registrati per la vittoria: {_characters.Count}");
     }
 
-    public void Update()
+    private void Update()
     {
         if (!_isLevelEnded && Input.GetKeyDown(KeyCode.Escape))
         {
@@ -59,6 +59,22 @@ public class LVLManager : MonoBehaviour
     }
 
 
+
+    public void CharacterRegistration(CharacterFSM character)
+    {
+        if (character == null)
+        {
+            Debug.LogWarning("[LVLManager] Tentativo di registrare un personaggio nullo.");
+            return;
+        }
+
+        if (!character.CountsForWin) return;
+
+        if (_characters.Contains(character)) return;
+
+        _characters.Add(character);
+        character.OnCharacterDeath += OnCharacterDeath;
+    }
     private void OnCharacterDeath(CharacterFSM character)
     {
         if (_isLevelEnded) return;
@@ -68,6 +84,8 @@ public class LVLManager : MonoBehaviour
         _deadCount++;
         CheckWinCondition();
     }
+
+
 
     private void CheckWinCondition()
     {
@@ -142,7 +160,8 @@ public class LVLManager : MonoBehaviour
     {
         foreach (CharacterFSM character in _characters)
         {
-            character.OnCharacterDeath -= OnCharacterDeath;
+            if (character != null)
+                character.OnCharacterDeath -= OnCharacterDeath;
         }
         if (Instance == this)
         {
