@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public int CurrentLevelIndex { get; private set; } = 1;
     public int UnlockedLevels { get; private set; } = 1;
 
+    private int _nextLevelIndex;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -49,7 +50,7 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public void NextLevel()
+    public void LevelCompleted()
     {
         int nextLevelIndex = CurrentLevelIndex + 1;
 
@@ -60,9 +61,16 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        if (Application.CanStreamedLevelBeLoaded($"LVL_{nextLevelIndex:D2}"))
+        _nextLevelIndex = nextLevelIndex;
+    }
+
+    public void NextLevel()
+    {
+        
+
+        if (Application.CanStreamedLevelBeLoaded($"LVL_{_nextLevelIndex:D2}"))
         {
-            LoadLevel(nextLevelIndex);
+            LoadLevel(_nextLevelIndex);
         }
         else
         {
@@ -81,16 +89,6 @@ public class GameManager : MonoBehaviour
     {
 
         SceneManager.LoadScene("MainMenu");
-    }
-
-    public void LoadLevelSelection()
-    {
-        SceneManager.LoadScene("LVLSelectMenu");
-    }
-
-    public void LoadCreditsScene()
-    {
-        SceneManager.LoadScene("CreditsScene");
     }
 
     public void OnApplicationQuit()

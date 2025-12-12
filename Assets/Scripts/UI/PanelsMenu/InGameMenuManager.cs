@@ -3,10 +3,12 @@ using UnityEngine;
 public class InGameMenuManager : MonoBehaviour
 {
     [Header("Animated Panels")]
-    [SerializeField] private AnimatedPanel winPanel;
-    [SerializeField] private AnimatedPanel losePanel;
-    [SerializeField] private AnimatedPanel pausePanel;
-    [SerializeField] private AnimatedPanel optionsPanel;
+    [SerializeField] private AnimatedPanel _winPanel;
+    [SerializeField] private AnimatedPanel _losePanel;
+    [SerializeField] private AnimatedPanel _menuPanel;
+    [SerializeField] private AnimatedPanel _optionsPanel;
+    [SerializeField] private AnimatedPanel _confirmExitPanel;
+    [SerializeField] private AnimatedPanel _confirmRestartPanel;
 
     private bool _isHooked;
 
@@ -35,7 +37,7 @@ public class InGameMenuManager : MonoBehaviour
         {
             LVLManager.Instance.onWinEvent -= ShowWinPanel;
             LVLManager.Instance.onLostEvent -= ShowLosePanel;
-            LVLManager.Instance.onPauseEvent -= ShowPausePanel;
+            LVLManager.Instance.onPauseEvent -= ShowMenuPanel;
             LVLManager.Instance.onResumeEvent -= HideAllMenus;
             _isHooked = false;
         }
@@ -47,7 +49,7 @@ public class InGameMenuManager : MonoBehaviour
 
         lvl.onWinEvent += ShowWinPanel;
         lvl.onLostEvent += ShowLosePanel;
-        lvl.onPauseEvent += ShowPausePanel;
+        lvl.onPauseEvent += ShowMenuPanel;
         lvl.onResumeEvent += HideAllMenus;
 
         _isHooked = true;
@@ -57,49 +59,58 @@ public class InGameMenuManager : MonoBehaviour
     private void ShowWinPanel()
     {
         Debug.Log("[InGameMenuManager] ShowWinPanel");
-        winPanel?.OpenPanel();
+        _winPanel?.OpenPanel();
     }
 
     private void ShowLosePanel()
     {
         Debug.Log("[InGameMenuManager] ShowLosePanel");
-        losePanel?.OpenPanel();
+        _losePanel?.OpenPanel();
     }
 
-    private void ShowPausePanel()
+    private void ShowMenuPanel()
     {
         Debug.Log("[InGameMenuManager] ShowPausePanel");
         HideAllMenus();
-        pausePanel?.OpenPanel();
+        _menuPanel?.OpenPanel();
     }
 
     public void ShowOptionsPanel()
     {
         Debug.Log("[InGameMenuManager] ShowOptionsPanel");
         HideAllMenus();
-        optionsPanel?.OpenPanel();
+        _optionsPanel?.OpenPanel();
     }
 
-    public void BackToPauseMenu()
+
+    private void ShowConfirmExitPanel()
     {
-        Debug.Log("[InGameMenuManager] BackToPauseMenu");
+        Debug.Log("[InGameMenuManager] ShowConfirmExitPanel");
         HideAllMenus();
-        pausePanel?.OpenPanel();
+        _confirmExitPanel?.OpenPanel();
     }
+
+    private void ShowConfirmRestartPanel()
+    {
+        Debug.Log("[InGameMenuManager] ShowConfirmRestartPanel");
+        HideAllMenus();
+        _confirmRestartPanel?.OpenPanel();
+    }
+
 
     private void HideAllMenus()
     {
-        winPanel?.ClosePanel();
-        losePanel?.ClosePanel();
-        pausePanel?.ClosePanel();
-        optionsPanel?.ClosePanel();
+        _winPanel?.ClosePanel();
+        _losePanel?.ClosePanel();
+        _menuPanel?.ClosePanel();
+        _optionsPanel?.ClosePanel();
     }
 
     private void HideAllMenusInstant()
     {
-        winPanel?.gameObject.SetActive(false);
-        losePanel?.gameObject.SetActive(false);
-        pausePanel?.gameObject.SetActive(false);
-        optionsPanel?.gameObject.SetActive(false);
+        _winPanel?.gameObject.SetActive(false);
+        _losePanel?.gameObject.SetActive(false);
+        _menuPanel?.gameObject.SetActive(false);
+        _optionsPanel?.gameObject.SetActive(false);
     }
 }

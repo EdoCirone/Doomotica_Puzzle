@@ -114,6 +114,7 @@ public class LVLManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(1f);
         Time.timeScale = 0f;
         Debug.Log("Hai vinto!");
+        GameManager.Instance.LevelCompleted();
         onWinEvent?.Invoke();
 
     }

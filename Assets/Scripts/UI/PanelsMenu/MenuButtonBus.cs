@@ -5,9 +5,6 @@ public enum MenuButtonType
     NextLevel,
     ResetLevel,
     MainMenu,
-    Options,
-    CloseOptions,
-    Resume,
     QuitGame
 }
 
@@ -33,10 +30,6 @@ public class MenuButtonBus : MonoBehaviour
                 GameManager.Instance.ReturnToMenu();
                 break;
 
-            case MenuButtonType.Resume:
-                LVLManager.Instance.TogglePause();
-                break;
-
             case MenuButtonType.QuitGame:
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
@@ -51,8 +44,5 @@ public class MenuButtonBus : MonoBehaviour
     public void ExecuteNextLevel() => Execute(MenuButtonType.NextLevel);
     public void ExecuteResetLevel() => Execute(MenuButtonType.ResetLevel);
     public void ExecuteMainMenu() => Execute(MenuButtonType.MainMenu);
-    public void ExecuteOptions() => Execute(MenuButtonType.Options);
-    public void ExecuteCloseOptions() => Execute(MenuButtonType.CloseOptions);
-    public void ExecuteResume() => Execute(MenuButtonType.Resume);
     public void ExecuteQuitGame() => Execute(MenuButtonType.QuitGame);
 }
