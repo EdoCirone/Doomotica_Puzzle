@@ -11,6 +11,8 @@ public class InGameMenuManager : MonoBehaviour
     [SerializeField] private AnimatedPanel _confirmRestartPanel;
 
     private bool _isHooked;
+    private bool _isOptionsOpen;
+    private bool _isMenuOpen;
 
     private void Awake()
     {
@@ -68,12 +70,29 @@ public class InGameMenuManager : MonoBehaviour
         _losePanel?.OpenPanel();
     }
 
-    private void ShowMenuPanel()
+    public void ShowMenuPanel()
     {
-        Debug.Log("[InGameMenuManager] ShowPausePanel");
-        HideAllMenus();
-        _menuPanel?.OpenPanel();
+        if (!_isMenuOpen)
+        {
+            Debug.Log("[InGameMenuManager] ShowPausePanel");
+            HideAllMenus();
+            _menuPanel?.OpenPanel();
+        }
+        else         {
+            Debug.Log("[InGameMenuManager] HidePausePanel");
+            HideAllMenus();
+        }
+
     }
+
+    //Allora, ora come ora è il lvlmanager che gestisce la pausa, io non voglio collegare il lvlmanager al button menu quindi metto qui una funzione pubblica che il button può chiamare semplicemente per togglerare la pausa
+
+    public void ToggleMenuPanel()
+    {
+        LVLManager.Instance.TogglePause();
+            }
+
+
 
     public void ShowOptionsPanel()
     {
