@@ -20,6 +20,7 @@ public class LVLManager : MonoBehaviour
     public event Action onResumeEvent;
     public event Action onPauseEvent;
 
+    public bool IsPaused => _isPaused;
 
     private void Awake()
     {
