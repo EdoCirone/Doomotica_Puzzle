@@ -2,7 +2,7 @@
 - Project name: Doomotica_Puzzle
 - Unity version: Unity 6000.2.10f1
 - Active game object:
-  - Name: OutLine
+  - Name: UIManager
   - Tag: Untagged
-  - Layer: UI
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
