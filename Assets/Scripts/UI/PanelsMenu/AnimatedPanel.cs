@@ -8,7 +8,8 @@ public class AnimatedPanel : MonoBehaviour
     private enum MovType
     {
         SCALE,
-        SLIDE
+        SLIDEX,
+        SLIDEY
 
     }
 
@@ -47,11 +48,17 @@ public class AnimatedPanel : MonoBehaviour
                     _canvasGroup.alpha = 0f;
                     _rectTransform.localScale = Vector3.zero;
                     break;
-                case MovType.SLIDE:
+                case MovType.SLIDEX:
                     _rectTransform.anchoredPosition = new Vector2(_moveOffset, _showPosition.y);
                     break;
+
+                case MovType.SLIDEY:
+                    _rectTransform.anchoredPosition = new Vector2(_showPosition.x, _moveOffset);
+                    break;
             }
+
         }
+
     }
 
     public void Start()
@@ -88,10 +95,19 @@ public class AnimatedPanel : MonoBehaviour
                     OnComplete(() => OnOpenComplete?.Invoke()); //Invoca l'evento di completamento apertura alla fine dell'animazione .OnComplete
                 break;
 
-            case MovType.SLIDE:
+            case MovType.SLIDEX:
                 //Imposta la posizione iniziale fuori schermo a sinistra
                 _rectTransform.anchoredPosition = new Vector2(_moveOffset, _showPosition.y);
 
+                //Esegui l'animazione di scorrimento verso la posizione finale (0,0)
+                _rectTransform.DOAnchorPos(_showPosition, _animationDuration)
+                    .SetEase(_easeType)
+                    .SetUpdate(true).OnComplete(() => OnOpenComplete?.Invoke()); ;
+                break;
+
+            case MovType.SLIDEY:
+                //Imposta la posizione iniziale fuori schermo in alto
+                _rectTransform.anchoredPosition = new Vector2(_showPosition.x, _moveOffset);
                 //Esegui l'animazione di scorrimento verso la posizione finale (0,0)
                 _rectTransform.DOAnchorPos(_showPosition, _animationDuration)
                     .SetEase(_easeType)
@@ -129,7 +145,7 @@ public class AnimatedPanel : MonoBehaviour
                     });
                 break;
 
-            case MovType.SLIDE:
+            case MovType.SLIDEX:
 
                 _rectTransform.DOAnchorPos(new Vector2(_moveOffset, _showPosition.y), _animationDuration)
                     .SetEase(_closeEaseType)
@@ -143,6 +159,16 @@ public class AnimatedPanel : MonoBehaviour
 
                 break;
 
+            case MovType.SLIDEY:
+                _rectTransform.DOAnchorPos(new Vector2(_showPosition.x, _moveOffset), _animationDuration)
+                    .SetEase(_closeEaseType)
+                    .SetUpdate(true).OnComplete(() =>
+                    {
+                        gameObject.SetActive(false); // Disattiva il pannello alla fine dell'animazione
+                        OnClosedComplete?.Invoke();
+                    });
+                ;
+                break;
         }
 
 
