@@ -22,6 +22,17 @@ public class BootManager : MonoBehaviour
 
     private void Start()
     {
+#if UNITY_EDITOR
+        // Uso come targhet la scena da cui ho avviato il gioco in editor
+        string editorTargert = UnityEditor.EditorPrefs.GetString("PLAY_FROM_SCENE_NAME", "");
+        if(!string.IsNullOrEmpty(editorTargert))
+        {
+            _sceneToLoad = editorTargert;
+            Debug.Log($"[BOOT] Editor mode: target scena impostata a '{_sceneToLoad}'");
+            UnityEditor.EditorPrefs.DeleteKey("PLAY_FROM_SCENE_NAME");
+        }
+#endif
+
         // Assicurati che il loading canvas sia invisibile
         _loadingCanvas.alpha = 0f;
         _loadingCanvas.gameObject.SetActive(false);
