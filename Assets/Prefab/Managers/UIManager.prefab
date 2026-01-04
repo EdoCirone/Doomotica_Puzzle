@@ -25,14 +25,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1725429567572529730}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.27731293, y: -0.051443838, z: 0.014875182, w: 0.9592861}
+  m_LocalRotation: {x: 0.2773102, y: -0.051440965, z: 0.014870527, w: 0.9592871}
   m_LocalPosition: {x: 2.5599995, y: 10.196985, z: -21.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5099244798119361152}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 32.247, y: -6.139, z: 0}
 --- !u!114 &6432601654061201335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45,10 +45,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b560e8a6523894fa8486cc2cea5929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  winPanel: {fileID: 0}
-  losePanel: {fileID: 0}
-  pausePanel: {fileID: 0}
-  optionsPanel: {fileID: 0}
+  _winPanel: {fileID: 0}
+  _losePanel: {fileID: 0}
+  _menuPanel: {fileID: 0}
+  _optionsPanel: {fileID: 0}
+  _confirmExitPanel: {fileID: 0}
+  _confirmRestartPanel: {fileID: 0}
 --- !u!1 &5815919859010710073
 GameObject:
   m_ObjectHideFlags: 0
