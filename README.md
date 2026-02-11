@@ -1,83 +1,42 @@
-# Doomotica-Puzzle
+# Doomotica – Puzzle Prototype (Unity)
 
-Doomotica Puzzle – Unity Prototype
-Overview
+Vertical slice (2 levels) of a point-and-click puzzle game where the player (a home automation system) manipulates appliances and hazards to eliminate all humans in the level.
 
-Doomotica Puzzle is a gameplay prototype set in the Doomotica universe.
-The player interacts with environmental objects to manipulate hazards and influence NPC behavior through a systemic puzzle structure.
+## Tech
+- **Engine:** Unity **6000.2.10f1**
+- **Genre:** Point & Click / Systemic Puzzle
+- **Platforms:** PC (prototype)
 
-The project demonstrates:
+## Core Gameplay
+- Click appliances and interactive objects to trigger effects in the environment
+- Observe NPC reactions and chain events to reach the objective
+- **Objective (all levels):** eliminate all humans in the level
 
-Finite State Machine architecture for NPC behavior
+## Lose Conditions
+- **Level 1:** you lose if the man sees the woman dead and does not die
+- **Level 2:** you lose if the dog dies
 
-Hazard interaction system (poison, soap triggers, etc.)
+## Scenes
+- `MainMenu`
+- `LVL1`
+- `LVL2`
 
-Modular object interaction (carriable objects, moving furniture)
+## How to Play
+- **Mouse:** click on appliances / interactive objects
+- The game provides feedback through UI and character behavior changes
 
-Centralized GameManager & BootManager structure
+## What this project demonstrates
+- Finite State Machine architecture for NPC behavior (per-level implementations)
+- Systemic hazards and trigger-driven outcomes
+- Modular interaction system for environment objects
+- Centralized management (game flow, camera, audio)
+- Production-ready project organization (Assets/Scripts split by domain)
 
-Audio and camera management systems
+## Playable Build
+A playable build will be published on Itch.io once audio and animations are finalized.
+(When ready, add the link here.)
 
-Core Systems
-NPC Finite State Machines
-
-Each character is driven by a custom FSM system:
-
-CharacterFSM (base logic)
-
-StateEnum (state definitions)
-
-Level-specific behavior implementations
-
-NPCs react dynamically to environmental changes and hazards.
-
-Hazard System
-
-Objects can become hazardous (e.g. PoisonableFood).
-Triggers affect NPC states and gameplay outcome.
-
-Interaction System
-
-Objects categorized as:
-
-CarriableObject
-
-MovingForniture
-
-GenericForniture
-
-The system allows modular expansion of interactive elements.
-
-Tech Stack
-
-Unity (specify version)
-
-C#
-
-DOTween
-
-Custom FSM architecture
-
-How to Run
-
-Open project in Unity (version X.X.X)
-
-Open main scene (specify path)
-
-Press Play
-
-Current Status
-
-Work in progress:
-
-Audio polish
-
-Animations refinement
-
-UX feedback improvements
-
-Build will be available on Itch once finalized.
-
-Author
-
-Edoardo Cirone
+## Credits
+Created by **Edoardo Cirone**
+- Email: edoardocirone@gmail.com
+- Website: www.edoardocirone.com
